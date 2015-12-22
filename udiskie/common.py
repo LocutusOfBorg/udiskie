@@ -97,6 +97,17 @@ def samefile(a, b):
         return os.path.normpath(a) == os.path.normpath(b)
 
 
+def decode(s):
+    return s.decode('utf-8') if isinstance(s, bytes) else s
+
+
+def decoded(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return decode(func(*args, **kwargs))
+    return wrapper
+
+
 def setdefault(self, other):
     """
     Merge two dictionaries like .update() but don't overwrite values.
