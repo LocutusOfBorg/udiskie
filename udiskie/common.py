@@ -97,17 +97,6 @@ def samefile(a, b):
         return os.path.normpath(a) == os.path.normpath(b)
 
 
-def decode(s):
-    return s.decode('utf-8') if isinstance(s, bytes) else s
-
-
-def decoded(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return decode(func(*args, **kwargs))
-    return wrapper
-
-
 def setdefault(self, other):
     """
     Merge two dictionaries like .update() but don't overwrite values.
@@ -156,3 +145,43 @@ class AttrDictView(object):
             return self.__data[key]
         except KeyError:
             raise AttributeError
+
+
+# ----------------------------------------
+# byte array to string conversion
+# ----------------------------------------
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
+
+def decode(ay):
+    """Convert data from DBus queries to strings."""
+    if ay is None:
+        return ''
+    elif isinstance(ay, unicode):
+        return ay
+    elif isinstance(ay, bytes):
+        return ay.decode('utf-8')
+    else:
+        # dbus.Array([dbus.Byte]) or any similar sequence type:
+        return bytearray(ay).rstrip(bytearray((0,))).decode('utf-8')
+
+
+def encode(s):
+    """Convert data from DBus queries to strings."""
+    if s is None:
+        return b''
+    elif isinstance(s, unicode):
+        return s.encode('utf-8')
+    else:
+        return s
+
+
+def decoded(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return decode(func(*args, **kwargs))
+    return wrapper
